@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .calculator {
+            display: inline-block;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .display {
+            width: 200px;
+            height: 40px;
+            font-size: 20px;
+            text-align: right;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        .buttons button {
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #eee;
+            cursor: pointer;
+        }
+        .buttons button:active {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" class="display" id="display" readonly>
+        <div class="buttons">
+            <button onclick="handleNumber(7)">7</button>
+            <button onclick="handleNumber(8)">8</button>
+            <button onclick="handleNumber(9)">9</button>
+            <button onclick="handleOperator('+')">+</button>
+            <button onclick="handleNumber(4)">4</button>
+            <button onclick="handleNumber(5)">5</button>
+            <button onclick="handleNumber(6)">6</button>
+            <button onclick="handleOperator('-')">-</button>
+            <button onclick="handleNumber(1)">1</button>
+            <button onclick="handleNumber(2)">2</button>
+            <button onclick="handleNumber(3)">3</button>
+            <button onclick="handleOperator('*')">*</button>
+            <button onclick="handleNumber(0)">0</button>
+            <button onclick="handleDecimal()">.</button>
+            <button onclick="handleEquals()">=</button>
+            <button onclick="handleOperator('/')">/</button>
+            <button onclick="clearCalculator()">C</button>
+            <button onclick="handleBackspace()">←</button>
+        </div>
+    </div>
+
+    <script>
+        let firstNumber = null;
+        let operator = null;
+        let secondNumber = null;
+        let hasDecimal = false;
+        const display = document.getElementById("display");
+
+        function updateDisplay(value) {
+            display.value = value;
+        }
+
+        function handleNumber(number) {
+            if (display.value === "0" || operator !== null) {
+                updateDisplay(number);
+            } else {
+                updateDisplay(display.value + number);
+            }
+        }
+
+        function handleOperator(newOperator) {
+            if (firstNumber !== null && operator !== null && secondNumber !== null) {
+                evaluatePair();
+            }
+            firstNumber = parseFloat(display.value);
+            operator = newOperator;
+            hasDecimal = false;
+        }
+
+        function evaluatePair() {
+            secondNumber = parseFloat(display.value);
+            let result;
+            switch (operator) {
+                case '+':
+                    result = firstNumber + secondNumber;
+                    break;
+                case '-':
+                    result = firstNumber - secondNumber;
+                    break;
+                case '*':
+                    result = firstNumber * secondNumber;
+                    break;
+                case '/':
+                    if (secondNumber === 0) {
+                        displayError("Snarky error: Cannot divide by 0!");
+                        return;
+                    }
+                    result = firstNumber / secondNumber;
+                    break;
+                default:
+                    return;
+            }
+            firstNumber = result;
+            operator = null;
+            secondNumber = null;
+            updateDisplay(roundResult(result));
+        }
+
+        function roundResult(result) {
+            return Math.round(result * 1000) / 1000;
+        }
+
+        function handleEquals() {
+            if (firstNumber !== null && operator !== null && secondNumber !== null) {
+                evaluatePair();
+            } else {
+                displayError("Incomplete input!");
+            }
+        }
+
+        function clearCalculator() {
+            firstNumber = null;
+            operator = null;
+            secondNumber = null;
+            hasDecimal = false;
+            updateDisplay("0");
+        }
+
+        function handleDecimal() {
+            if (!hasDecimal) {
+                updateDisplay(display.value + ".");
+                hasDecimal = true;
+            }
+        }
+
+        function handleBackspace() {
+            let currentDisplay = display.value;
+            if (currentDisplay.length > 0) {
+                updateDisplay(currentDisplay.slice(0, -1));
+            }
+        }
+
+        function displayError(message) {
+            updateDisplay(message);
+            setTimeout(() => updateDisplay("0"), 2000);
+        }
+
+        // Keyboard support
+        document.addEventListener("keydown", (event) => {
+            const key = event.key;
+            if (/\d/.test(key)) {
+                handleNumber(parseInt(key));
+            } else if (["+", "-", "*", "/"].includes(key)) {
+                handleOperator(key);
+            } else if (key === ".") {
+                handleDecimal();
+            } else if (key === "Enter" || key === "=") {
+                handleEquals();
+            } else if (key === "Backspace") {
+                handleBackspace();
+            } else if (key === "Escape") {
+                clearCalculator();
+            }
+        });
+    </script>
+</body>
+</html>
